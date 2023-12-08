@@ -1,0 +1,19 @@
+{
+  "name": "@kevin/monorepo",
+  "version": "0.0.1",
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ]
+  },
+  "scripts": {
+    "reset": "find . -type d -name node_modules | xargs rm -rf && rm -rf yarn.lock"
+  },
+  "packageManager": "yarn@3.2.4",
+  "dependencies": {
+    "node-gyp": "^9.3.0"
+  },
+  "devDependencies": {
+  }
+}

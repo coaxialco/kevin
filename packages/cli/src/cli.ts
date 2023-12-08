@@ -1,44 +1,29 @@
-import OpenAI from 'openai';
-import { terminal } from 'terminal-kit';
-import { currentWorkingDirectory as cwd } from './lib/current-working-directory';
+import * as fs from 'fs-extra';
+import { realTerminal as terminal } from 'terminal-kit';
+import { ChatRunner } from './lib/runner';
 import multiLineInputGenerator from './lib/multi-line-input';
-import currentWorkingDirectory from './tools/current-working-directory';
-import readDirectory from './tools/read-directory';
-import readFile from './tools/read-file';
-import writeFile from './tools/write-file';
+import { getOpenAIKey } from './lib/api-key';
 
-const openai = new OpenAI();
+let _chatRunner: ChatRunner | void;
+
+async function getChatRunner() {
+  if (typeof _chatRunner !== 'undefined') {
+    return _chatRunner;
+  }
+  const key = await getOpenAIKey();
+  const chatRunner = new ChatRunner(key);
+  chatRunner.on('content', (content: string) => terminal.yellow(content));
+  _chatRunner = chatRunner;
+  return chatRunner;
+}
 
 async function main() {
-  const workingDirectory = cwd();
-  const systemMessage = `
-    You are a world-class software developer assisting your company's CTO.
-    Use the provided functions to perform the tasks the CTO requests.
-    When asked to write software, save the code to the filesystem using the provided functions.
-    Do not output code to the console if it's being written to the filesystem.
-    The current working directory is: ${workingDirectory}
-    You can read or write files in the current working directory.
-    The current date is: ${new Date().toUTCString()}
-  `;
-  const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-    {
-      role: 'system',
-      content: systemMessage.trim()
-    }
-  ];
+  terminal.yellow('How can I help you?\n');
+  terminal.gray('Press ENTER three times quickly to complete your message.\n\n');
+  const chatRunnerPromise = getChatRunner();
   for await (const input of multiLineInputGenerator()) {
-    messages.push({ role: 'user', content: input });
-    const runner = openai.beta.chat.completions.runTools({
-      model: 'gpt-4-1106-preview',
-      stream: true,
-      tools: [readFile, writeFile, readDirectory, currentWorkingDirectory],
-      messages
-    });
-    runner.on('message', (message: object) => {
-      messages.push({ role: 'user', content: input });
-    });
-    runner.on('content', (content: string) => terminal.bold(content));
-    await runner.finalChatCompletion();
+    const chatRunner = await chatRunnerPromise;
+    await chatRunner.sendMessage(input);
   }
 }
 

@@ -1,4 +1,5 @@
-import { terminal } from 'terminal-kit';
+import { realTerminal as terminal } from 'terminal-kit';
+import readline from 'node:readline';
 
 export default async function* multiLineInputGenerator(): AsyncGenerator<string, void, unknown> {
   const inputLines: string[] = [];
@@ -6,6 +7,23 @@ export default async function* multiLineInputGenerator(): AsyncGenerator<string,
   let enterPressCount = 0;
   let lastEnterPressTime = 0;
   let resolveKeyPress: (() => void) | null = null;
+
+  if (!process.stdin.isTTY) {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+      terminal: false
+    });
+
+    rl.on('line', (line) => {
+      terminal.cyan(`${line}\n`);
+      inputLines.push(line);
+    });
+
+    await new Promise((resolve) => {
+      rl.once('close', resolve);
+    });
+  }
 
   terminal.grabInput({});
 
@@ -63,8 +81,6 @@ export default async function* multiLineInputGenerator(): AsyncGenerator<string,
       terminal(name);
     }
   });
-
-  terminal('Please enter your input (press ENTER three times quickly to finish):\n');
 
   while (true) {
     await new Promise<void>((resolve) => {

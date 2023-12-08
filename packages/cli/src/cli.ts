@@ -1,8 +1,7 @@
-import * as fs from 'fs-extra';
 import { realTerminal as terminal } from 'terminal-kit';
-import { ChatRunner } from './lib/runner';
-import multiLineInputGenerator from './lib/multi-line-input';
 import { getOpenAIKey } from './lib/api-key';
+import multiLineInputGenerator from './lib/multi-line-input';
+import { ChatRunner } from './lib/runner';
 
 let _chatRunner: ChatRunner | void;
 

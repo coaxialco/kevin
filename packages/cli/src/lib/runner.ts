@@ -1,5 +1,5 @@
 import EventEmitter from 'events';
-import OpenAI from 'openai';
+import { default as OpenAI } from 'openai';
 import { currentWorkingDirectory as cwd } from './current-working-directory';
 import currentWorkingDirectory from '../tools/current-working-directory';
 import readDirectory from '../tools/read-directory';

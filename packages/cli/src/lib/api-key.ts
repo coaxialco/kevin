@@ -16,5 +16,5 @@ export async function getOpenAIKey() {
       }
     }
   }
-  throw new Error('Key does not exist');
+  throw new Error('OPENAI_API_KEY key does not exist. Add to the command line or to ~/.openai/credentials');
 }

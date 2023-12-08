@@ -1,4 +1,3 @@
-import { resolve } from 'path';
 import { writeFile } from 'fs-extra';
 import { RunnableToolFunction } from 'openai/lib/RunnableFunction';
 import { z } from 'zod';

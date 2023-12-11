@@ -1,6 +1,7 @@
 import { applyPatch } from 'diff';
 import { writeFile, readFile } from 'fs-extra';
 import { RunnableToolFunction } from 'openai/lib/RunnableFunction';
+import { toolLogger } from '../lib/loggers';
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { confirmWorkingDirectory } from '../lib/current-working-directory';
@@ -8,19 +9,19 @@ import wrap from '../lib/wrap-tool-function';
 import { zodParseJSON } from '../lib/zod';
 
 export const params = z.object({
-  name: z.string(),
-  patch: z.string()
+  filePath: z.string().describe('The relative or absolute file path'),
+  patch: z.string().describe('A unified diff patch')
 });
 
-export async function func({ name, patch }: z.infer<typeof params>) {
-  await confirmWorkingDirectory(name);
-  const oldContent = await readFile(name, 'utf-8');
+export async function func({ filePath, patch }: z.infer<typeof params>) {
+  await confirmWorkingDirectory(filePath);
+  const oldContent = await readFile(filePath, 'utf-8');
   const newContent = applyPatch(oldContent, patch);
   if (newContent === false) {
-    throw new Error(`Unable to patch ${name}`);
+    throw new Error(`Unable to patch ${filePath}`);
   }
-  await writeFile(name, newContent, 'utf-8');
-  console.log(`Patched ${name}: \n${patch}`);
+  await writeFile(filePath, newContent, 'utf-8');
+  toolLogger(`Patched ${filePath}: \n${patch}`);
 }
 
 export default {

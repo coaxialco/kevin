@@ -25,9 +25,7 @@ export default async function* multiLineInputGenerator(): AsyncGenerator<string,
     });
   }
 
-  terminal.grabInput({});
-
-  terminal.on('key', (name: string) => {
+  function handleKey(name: string) {
     // Handle Enter key for new line
     if (name === 'ENTER') {
       const now: number = Date.now();
@@ -80,12 +78,16 @@ export default async function* multiLineInputGenerator(): AsyncGenerator<string,
       currentLine += name;
       terminal(name);
     }
-  });
+  }
 
   while (true) {
+    terminal.grabInput(true);
+    terminal.addListener('key', handleKey);
     await new Promise<void>((resolve) => {
       resolveKeyPress = resolve;
     });
+    await terminal.grabInput(false, true);
+    terminal.removeListener('key', handleKey);
     const message = inputLines.join('\n').trim();
     if (message.length > 0) {
       yield message;

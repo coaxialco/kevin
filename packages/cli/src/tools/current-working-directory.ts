@@ -1,4 +1,5 @@
 import { RunnableToolFunction } from 'openai/lib/RunnableFunction';
+import { toolLogger } from '../lib/loggers';
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { currentWorkingDirectory } from '../lib/current-working-directory';
@@ -9,7 +10,7 @@ export const params = z.object({});
 
 export function func() {
   const cwd = currentWorkingDirectory();
-  console.log(`Got current working directory: ${cwd}`);
+  toolLogger(`Got current working directory: ${cwd}`);
   return cwd;
 }
 

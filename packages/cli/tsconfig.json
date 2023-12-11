@@ -1,3 +1,6 @@
 {
-  "extends": "@kevin/configuration/node/tsconfig.json"
+  "extends": "@kevin/configuration/node/tsconfig.json",
+  "exclude": [
+    "./babel.config.js"
+  ]
 }

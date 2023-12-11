@@ -22,6 +22,10 @@
       ],
       "declaration": true,
       "declarationDir": "./types"
-    }
+    },
+    "exclude": [
+      "**/dist/**/*",
+      "**/types/**/*"
+    ]
   }
   

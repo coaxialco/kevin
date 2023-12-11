@@ -5,7 +5,12 @@ const config: Config = {
   testEnvironment: '@kevin/configuration/node/jest-environment',
   moduleDirectories: ['node_modules', 'src', 'test'],
   verbose: true,
-  transformIgnorePatterns: ['node_modules/(?!(p-queue|p-timeout))']
+  extensionsToTreatAsEsm: ['.ts'],
+  transformIgnorePatterns: ['node_modules/(?!(p-queue|p-timeout|import-meta-resolve))'],
+  transform: {
+    '^.+\\.(ts|tsx)?$': 'ts-jest',
+    '^.+\\.(js|jsx)$': 'babel-jest'
+  }
 };
 
 export default config;

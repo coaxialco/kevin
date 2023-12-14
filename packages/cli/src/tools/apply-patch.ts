@@ -1,10 +1,10 @@
 import { applyPatch } from 'diff';
 import { writeFile, readFile } from 'fs-extra';
 import { RunnableToolFunction } from 'openai/lib/RunnableFunction';
-import { toolLogger } from '../lib/loggers';
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { confirmWorkingDirectory } from '../lib/current-working-directory';
+import { toolLogger } from '../lib/loggers';
 import wrap from '../lib/wrap-tool-function';
 import { zodParseJSON } from '../lib/zod';
 

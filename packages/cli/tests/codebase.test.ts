@@ -34,4 +34,19 @@ describe('Codebase functions', () => {
     const resolved = await resolveModule({ moduleSpecifier: `./${moduleDirectoryName}/bar`, filePath: baseFilePath });
     expect(resolved).toEqual(resolve(moduleFilePath));
   });
+  test('Should resolve a temp file in a directory', async () => {
+    const tempDirectory = await factory.makeTempDirectory();
+    process.chdir(tempDirectory);
+    const moduleDirectoryName = uuidv4();
+    const moduleDirectoryPath = resolve(tempDirectory, moduleDirectoryName);
+    const baseFilePath = resolve(tempDirectory, 'foo.ts');
+    const moduleFilePath = resolve(moduleDirectoryPath, 'index.ts');
+    const baseFileContent = `import { bar } from './${moduleDirectoryName}';`;
+    const moduleFileContent = `export const bar = 'bar';`;
+    await ensureDir(moduleDirectoryPath);
+    await writeFile(baseFilePath, baseFileContent, 'utf-8');
+    await writeFile(moduleFilePath, moduleFileContent, 'utf-8');
+    const resolved = await resolveModule({ moduleSpecifier: `./${moduleDirectoryName}`, filePath: baseFilePath });
+    expect(resolved).toEqual(resolve(moduleFilePath));
+  });
 });

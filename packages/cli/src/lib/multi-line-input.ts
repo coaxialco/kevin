@@ -9,6 +9,12 @@ export default async function* multiLineInputGenerator(): AsyncGenerator<string,
   let resolveKeyPress: (() => void) | null = null;
 
   if (!process.stdin.isTTY) {
+    const startLine = '\n\n\n******************** START OF STDIN *******************\n\n\n';
+    const endLine = '\n\n\n********************* END OF STDIN ********************\n\n\n';
+
+    terminal.cyan(startLine);
+    inputLines.push(startLine);
+
     const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
@@ -23,6 +29,9 @@ export default async function* multiLineInputGenerator(): AsyncGenerator<string,
     await new Promise((resolve) => {
       rl.once('close', resolve);
     });
+
+    terminal.cyan(endLine);
+    inputLines.push(endLine);
   }
 
   function handleKey(name: string) {

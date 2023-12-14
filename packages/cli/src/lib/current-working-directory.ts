@@ -12,9 +12,12 @@ export function currentWorkingDirectory() {
   return resolve(process.cwd());
 }
 
-export async function confirmWorkingDirectory(name: string, isDirectory = false) {
+export async function confirmWorkingDirectory(name: string, isDirectory = false): Promise<void> {
   const resolved = isDirectory ? resolve(name) : dirname(resolve(name));
   if (!(await exists(resolved))) {
+    if (resolved.length > 1) {
+      return confirmWorkingDirectory(dirname(resolved), true);
+    }
     throw new OutsideWorkingDirectoryError(name);
   }
   const realName = await realpath(resolved);

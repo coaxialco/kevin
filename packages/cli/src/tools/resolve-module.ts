@@ -1,11 +1,11 @@
 import { extname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { exists } from 'fs-extra';
-import { resolve } from 'import-meta-resolve';
+import { exists, stat } from 'fs-extra';
+
 import { RunnableToolFunction } from 'openai/lib/RunnableFunction';
-import { toolLogger } from '../lib/loggers';
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
+import { toolLogger } from '../lib/loggers';
 import wrap from '../lib/wrap-tool-function';
 import { zodParseJSON } from '../lib/zod';
 
@@ -19,6 +19,7 @@ export const params = z.object({
 });
 
 export async function func({ moduleSpecifier, filePath }: z.infer<typeof params>) {
+  const { resolve } = await import('import-meta-resolve');
   toolLogger(`Resolving module '${moduleSpecifier}' from '${filePath}'`);
   const resolved = resolve(moduleSpecifier, pathToFileURL(filePath).href);
   if (!resolved.startsWith('file:')) {
@@ -27,6 +28,20 @@ export async function func({ moduleSpecifier, filePath }: z.infer<typeof params>
   const resolvedPath = fileURLToPath(resolved);
   if (extname(resolvedPath) !== '') {
     return resolvedPath;
+  }
+  if (await exists(resolvedPath)) {
+    const resolvedPathStat = await stat(resolvedPath);
+    if (resolvedPathStat.isFile()) {
+      return resolvedPath;
+    }
+    if (resolvedPathStat.isDirectory()) {
+      for (const extension of ['js', 'ts']) {
+        const pathWithExtension = `${resolvedPath}/index.${extension}`;
+        if (await exists(pathWithExtension)) {
+          return pathWithExtension;
+        }
+      }
+    }
   }
   for (const extension of ['js', 'ts']) {
     const pathWithExtension = `${resolvedPath}.${extension}`;
@@ -41,7 +56,8 @@ export default {
   type: 'function',
   function: {
     name: 'resolveModule',
-    description: 'Resolves a JavaScript or TypeScript module specifier to a file path',
+    description:
+      'Resolves a JavaScript or TypeScript module specifier and returns a string containing the resolved file path',
     parameters: zodToJsonSchema(params),
     parse: zodParseJSON(params),
     function: wrap(func)

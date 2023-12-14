@@ -26,14 +26,26 @@ describe('Filesystem functions', () => {
   test('Should read the current directory', async () => {
     const tempDirectory = await factory.makeTempDirectory();
     process.chdir(tempDirectory);
+    const content = uuidv4();
+    const filePath = `${uuidv4()}.txt`;
+    await writeFile({ filePath, content });
     const directoryPath = await currentWorkingDirectory();
-    await readDirectory({ directoryPath, recursive: true });
+    const results = await readDirectory({ directoryPath });
+    console.log(results);
   });
   test('Should read and write files', async () => {
     const tempDirectory = await factory.makeTempDirectory();
     process.chdir(tempDirectory);
     const content = uuidv4();
     const filePath = `${uuidv4()}.txt`;
+    await writeFile({ filePath, content });
+    await expect(readFile({ filePath, includeLineNumbers: false })).resolves.toEqual(content);
+  });
+  test('Should create directories to write files', async () => {
+    const tempDirectory = await factory.makeTempDirectory();
+    process.chdir(tempDirectory);
+    const content = uuidv4();
+    const filePath = `${uuidv4()}/${uuidv4()}.txt`;
     await writeFile({ filePath, content });
     await expect(readFile({ filePath, includeLineNumbers: false })).resolves.toEqual(content);
   });

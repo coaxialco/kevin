@@ -1,8 +1,8 @@
 import { readFile } from 'fs-extra';
 import { RunnableToolFunction } from 'openai/lib/RunnableFunction';
-import { toolLogger } from '../lib/loggers';
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
+import { toolLogger } from '../lib/loggers';
 import wrap from '../lib/wrap-tool-function';
 import { zodParseJSON } from '../lib/zod';
 
@@ -27,7 +27,8 @@ export default {
   type: 'function',
   function: {
     name: 'readFile',
-    description: 'Reads the entire contents of a file using UTF-8 encoding',
+    description:
+      'Reads the entire contents of a file using UTF-8 encoding and returns a string containing the contents',
     parameters: zodToJsonSchema(params),
     parse: zodParseJSON(params),
     function: wrap(func)

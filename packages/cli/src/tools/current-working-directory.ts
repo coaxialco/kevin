@@ -1,8 +1,8 @@
 import { RunnableToolFunction } from 'openai/lib/RunnableFunction';
-import { toolLogger } from '../lib/loggers';
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { currentWorkingDirectory } from '../lib/current-working-directory';
+import { toolLogger } from '../lib/loggers';
 import wrap from '../lib/wrap-tool-function';
 import { zodParseJSON } from '../lib/zod';
 

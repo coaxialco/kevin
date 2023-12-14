@@ -6,7 +6,7 @@ const config: Config = {
   moduleDirectories: ['node_modules', 'src', 'test'],
   verbose: true,
   extensionsToTreatAsEsm: ['.ts'],
-  transformIgnorePatterns: ['node_modules/(?!(p-queue|p-timeout|import-meta-resolve))'],
+  transformIgnorePatterns: ['node_modules/(?!(p-queue|p-timeout|import-meta-resolve|ora))'],
   transform: {
     '^.+\\.(ts|tsx)?$': 'ts-jest',
     '^.+\\.(js|jsx)$': 'babel-jest'

@@ -38,8 +38,8 @@ async function main() {
   const chatRunnerPromise = getChatRunner();
   for await (const input of multiLineInputGenerator()) {
     const chatRunner = await chatRunnerPromise;
-
     await chatRunner.sendMessage(input);
+    terminal.gray('\n\n===============================\n\n');
   }
 }
 

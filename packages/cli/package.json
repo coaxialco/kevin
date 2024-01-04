@@ -8,6 +8,7 @@
   "sideEffects": false,
   "scripts": {
     "cli": "ts-node ./src/cli.ts",
+    "demo": "ts-node --transpile-only ./src/demo.ts",
     "kevin": "./bin/kevin",
     "prettier": "prettier './src/**/*.ts' --write",
     "lint:eslint": "eslint --cache --fix --ext .ts ./src",

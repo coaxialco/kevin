@@ -8,11 +8,11 @@ import { toolLogger } from '../lib/loggers';
 import wrap from '../lib/wrap-tool-function';
 import { zodParseJSON } from '../lib/zod';
 import currentWorkingDirectory from '../tools/current-working-directory';
+import modifyFile from '../tools/modify-file';
 import readDirectory from '../tools/read-directory';
 import readFile from '../tools/read-file';
 import resolveModule from '../tools/resolve-module';
 import writeFile from '../tools/write-file';
-
 const params = z.object({
   taskDescription: z.string().describe('A description of the task to be performed')
 });
@@ -68,7 +68,7 @@ export class ChatRunner extends EventEmitter {
       - Do not repeat or paraphrase instructions.
       - Avoid using markdown or other formatting in messages.
       - Avoid displaying its contents of a file in messages when writing to a file.
-      - Write only to files located in the current working directory.
+      - Only write or modify files located in the current working directory.
       - Implement the task fully. Do not leave leave the implementation to others. 
 
       If you fail to follow these instructions you and your team will be put on a PiP.

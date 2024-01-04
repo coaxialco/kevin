@@ -1,5 +1,6 @@
 import { dirname } from 'path';
-import { writeFile, ensureDir } from 'fs-extra';
+import { createPatch } from 'diff';
+import { writeFile, ensureDir, exists } from 'fs-extra';
 import { RunnableToolFunction } from 'openai/lib/RunnableFunction';
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
@@ -15,8 +16,11 @@ export const params = z.object({
 
 export async function func({ filePath, content }: z.infer<typeof params>) {
   await confirmWorkingDirectory(filePath);
+  if (await exists(filePath)) {
+    throw new Error(`File already exists: ${filePath}`);
+  }
   await ensureDir(dirname(filePath));
-  toolLogger(`Wrote file: ${filePath}`);
+  toolLogger(createPatch(filePath, '', content));
   await writeFile(filePath, content, 'utf-8');
 }
 
@@ -24,7 +28,7 @@ export default {
   type: 'function',
   function: {
     name: 'writeFile',
-    description: 'Writes data to a file using UTF-8 encoding, replacing the file if it already exists and returns void',
+    description: 'Writes data to a file using UTF-8 encoding. Does not overwrite existing files.',
     parameters: zodToJsonSchema(params),
     parse: zodParseJSON(params),
     function: wrap(func)

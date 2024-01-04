@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { resolve } from 'path';
 import { TempDirectoryFactory } from './lib/filesystem';
 import { func as applyPatch } from '../src/tools/apply-patch';
+import { func as modifyFile } from '../src/tools/modify-file';
 import { func as readFile } from '../src/tools/read-file';
 import { func as writeFile } from '../src/tools/write-file';
 import { func as readDirectory } from '../src/tools/read-directory';
@@ -84,5 +85,40 @@ describe('Filesystem functions', () => {
     await writeFile({ filePath, content: content1 });
     await applyPatch({ filePath, patch });
     await expect(readFile({ filePath, includeLineNumbers: false })).resolves.toEqual(content2);
+  });
+
+  function createModification(content: string): [string, { pattern: string; replacement: string }] {
+    const oldLines = content.split('\n');
+    const newLines = oldLines.slice();
+    const linesToRemove = [];
+    const linesToInsert = [];
+    const modificationIndex = Math.floor(Math.random() * (oldLines.length - 10));
+    for (let i = modificationIndex; i < modificationIndex + 10; i++) {
+      const line = uuidv4();
+      newLines[i] = line;
+      linesToInsert.push(line);
+      linesToRemove.push(oldLines[i]);
+    }
+    return [
+      newLines.join('\n'),
+      {
+        pattern: linesToRemove.join('\n'),
+        replacement: linesToInsert.join('\n')
+      }
+    ];
+  }
+  test('Should modify a file', async () => {
+    const tempDirectory = await factory.makeTempDirectory();
+    process.chdir(tempDirectory);
+    const filePath = `${uuidv4()}.txt`;
+    const content = Array.from({ length: 100 }, () => uuidv4()).join('\n');
+    await writeFile({ filePath, content });
+    const [newContent, modification] = createModification(content);
+    await modifyFile({
+      filePath,
+      modifications: [modification]
+    });
+    expect(content).not.toEqual(newContent);
+    await expect(readFile({ filePath, includeLineNumbers: false })).resolves.toEqual(newContent);
   });
 });

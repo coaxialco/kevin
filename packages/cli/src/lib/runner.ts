@@ -7,11 +7,10 @@ import { currentWorkingDirectory as cwd, confirmWorkingDirectory } from './curre
 import { toolLogger } from '../lib/loggers';
 import wrap from '../lib/wrap-tool-function';
 import { zodParseJSON } from '../lib/zod';
-import currentWorkingDirectory from '../tools/current-working-directory';
 import modifyFile from '../tools/modify-file';
 import readDirectory from '../tools/read-directory';
 import readFile from '../tools/read-file';
-import resolveModule from '../tools/resolve-module';
+//import resolveModule from '../tools/resolve-module.ts.old';
 import writeFile from '../tools/write-file';
 const params = z.object({
   taskDescription: z.string().describe('A description of the task to be performed')
@@ -57,14 +56,14 @@ export class ChatRunner extends EventEmitter {
 
       When asked to perform a a task, you should:
 
-      1. Read all files mentioned or referenced in the task description.
+      1. Read all files mentioned in the task description.
       2. Read all imported files, modules, and libraries referenced in the files that might be relevant.
       3. Write a concise description of the implementation steps you will take.
-      4. Briefly describe why it is important to perform the task.
-      5. Fully implement the solution without leaving TODOs or placeholders.
+      4. Fully implement the solution without leaving TODOs or placeholders.
 
       Other, more general instructions:
 
+      - Use the modifyFile function to make changes to files, do not overwrite files using writeFile.
       - Do not repeat or paraphrase instructions.
       - Avoid using markdown or other formatting in messages.
       - Avoid displaying its contents of a file in messages when writing to a file.
@@ -99,7 +98,7 @@ export class ChatRunner extends EventEmitter {
     const runner = this.openai.beta.chat.completions.runTools({
       model: 'gpt-4-1106-preview',
       stream: true,
-      tools: [readFile, writeFile, readDirectory, currentWorkingDirectory, resolveModule],
+      tools: [readFile, writeFile, readDirectory, modifyFile],
       messages: this.messages
     });
 

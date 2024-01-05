@@ -1,4 +1,4 @@
-import { readFile } from 'fs-extra';
+import { readFile, exists } from 'fs-extra';
 import { RunnableToolFunction } from 'openai/lib/RunnableFunction';
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
@@ -7,11 +7,14 @@ import wrap from '../lib/wrap-tool-function';
 import { zodParseJSON } from '../lib/zod';
 
 export const params = z.object({
-  filePath: z.string().describe('The relative or absolute file path'),
+  filePath: z.string().describe('The absolute path of the file to read'),
   includeLineNumbers: z.boolean().optional().default(false).describe('Include line numbers in the output')
 });
 
 export async function func({ filePath, includeLineNumbers }: z.infer<typeof params>) {
+  if (!(await exists(filePath))) {
+    throw new Error(`File with path "${filePath}" does not exist`);
+  }
   toolLogger(`Reading file '${filePath}'${includeLineNumbers ? ' with line numbers' : ''}`);
   const content = await readFile(filePath, 'utf-8');
   if (!includeLineNumbers) {

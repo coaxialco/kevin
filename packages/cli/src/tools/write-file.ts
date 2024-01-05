@@ -10,14 +10,14 @@ import wrap from '../lib/wrap-tool-function';
 import { zodParseJSON } from '../lib/zod';
 
 export const params = z.object({
-  filePath: z.string().describe('The relative or absolute file path'),
+  filePath: z.string().describe('The absolute path of the file to write'),
   content: z.string().describe('The content to write')
 });
 
 export async function func({ filePath, content }: z.infer<typeof params>) {
   await confirmWorkingDirectory(filePath);
   if (await exists(filePath)) {
-    throw new Error(`File already exists: ${filePath}`);
+    throw new Error(`File "${filePath}" already exists`);
   }
   await ensureDir(dirname(filePath));
   toolLogger(createPatch(filePath, '', content));

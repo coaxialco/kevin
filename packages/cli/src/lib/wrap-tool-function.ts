@@ -6,6 +6,7 @@ export default function wrap<T extends (...args: any[]) => any>(
       return func(...args);
     } catch (error) {
       if (error instanceof Error) {
+        console.log('SENDING ERROR STRING');
         return error.toString();
       }
       throw error;

@@ -1,4 +1,5 @@
 import { resolve } from 'path';
+import { exists } from 'fs-extra';
 import walk from 'ignore-walk';
 import { RunnableToolFunction } from 'openai/lib/RunnableFunction';
 import { z } from 'zod';
@@ -8,11 +9,14 @@ import wrap from '../lib/wrap-tool-function';
 import { zodParseJSON } from '../lib/zod';
 
 export const params = z.object({
-  directoryPath: z.string().describe('The relative or absolute directory path')
+  directoryPath: z.string().describe('The absolute path of the directory to read')
 });
 
 export async function func({ directoryPath }: z.infer<typeof params>) {
   toolLogger(`Reading directory '${directoryPath}'`);
+  if (!(await exists(directoryPath))) {
+    throw new Error(`Directory with path "${directoryPath}" does not exist`);
+  }
   const entries: string[] = await walk({
     path: directoryPath,
     ignoreFiles: ['.gitignore'],

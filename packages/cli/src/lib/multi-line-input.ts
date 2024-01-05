@@ -21,14 +21,10 @@ export default async function* multiLineInputGenerator(): AsyncGenerator<string,
       terminal: false
     });
 
-    rl.on('line', (line) => {
+    for await (const line of rl) {
       terminal.cyan(`${line}\n`);
       inputLines.push(line);
-    });
-
-    await new Promise((resolve) => {
-      rl.once('close', resolve);
-    });
+    }
 
     terminal.cyan(endLine);
     inputLines.push(endLine);
@@ -67,7 +63,7 @@ export default async function* multiLineInputGenerator(): AsyncGenerator<string,
       currentLine = currentLine.slice(0, -1);
       terminal.left(1).delete(1);
     }
-    // Handle CTRL+C for exit
+    // Handle CTRL+D for exit
     else if (name === 'CTRL_D') {
       inputLines.push(currentLine);
       currentLine = '';

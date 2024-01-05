@@ -3,14 +3,13 @@ import { default as OpenAI } from 'openai';
 import { RunnableToolFunction } from 'openai/lib/RunnableFunction';
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
-import { currentWorkingDirectory as cwd, confirmWorkingDirectory } from './current-working-directory';
+import { currentWorkingDirectory as cwd } from './current-working-directory';
 import { toolLogger } from '../lib/loggers';
 import wrap from '../lib/wrap-tool-function';
 import { zodParseJSON } from '../lib/zod';
 import modifyFile from '../tools/modify-file';
 import readDirectory from '../tools/read-directory';
 import readFile from '../tools/read-file';
-//import resolveModule from '../tools/resolve-module.ts.old';
 import writeFile from '../tools/write-file';
 const params = z.object({
   taskDescription: z.string().describe('A description of the task to be performed')
@@ -102,44 +101,29 @@ export class ChatRunner extends EventEmitter {
       messages: this.messages
     });
 
-    this.emitWaiting(true);
     runner.on('message', this.handleMessage.bind(this));
     runner.on('functionCall', this.handleFunctionCall.bind(this));
     runner.on('functionCallResult', this.handleFunctionCall.bind(this));
     runner.on('content', this.handleContent.bind(this));
     const result = await runner.finalChatCompletion();
     await new Promise<void>((resolve) => queueMicrotask(resolve));
-    this.emitWaiting(false);
     return result;
   }
 
-  emitWaiting(newValue: boolean) {
-    if (this.isWaiting !== newValue) {
-      this.isWaiting = newValue;
-      this.emit('waiting', newValue);
-    }
-  }
-
   handleMessage(message: OpenAI.Chat.Completions.ChatCompletionMessageParam) {
-    this.emitWaiting(true);
     this.messages.push(message);
     this.emit('content', '\n\n');
   }
 
   handleFunctionCall() {
     this.activeFunctionCalls += 1;
-    this.emitWaiting(false);
   }
 
   handleFunctionCallResult() {
     this.activeFunctionCalls -= 1;
-    if (this.activeFunctionCalls === 0) {
-      this.emitWaiting(true);
-    }
   }
 
   handleContent(content: string) {
-    this.emitWaiting(false);
     this.emit('content', content);
   }
 }

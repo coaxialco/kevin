@@ -1,6 +1,6 @@
-import * as crypto from 'crypto';
-import * as fs from 'fs';
-import * as terminalKit from 'terminal-kit';
+import crypto from 'crypto';
+import fs from 'fs';
+import terminalKit from 'terminal-kit';
 
 const defaults = {
   statusBar: {
@@ -11,30 +11,8 @@ const defaults = {
   }
 };
 
-interface TermitOptions {
-  disableOpen?: boolean;
-  disableSaveAs?: boolean;
-  title?: string;
-}
-
 export class Termit {
-  private term: terminalKit.Terminal;
-  private statusBarTimer?: NodeJS.Timeout = undefined;
-  private fileIsModified = false;
-  private screenBuffer: terminalKit.ScreenBuffer;
-  private textBuffer: terminalKit.TextBuffer;
-  private hookChain: (next: () => void) => void = (next) => {
-    next();
-  };
-  private fileHash = '';
-  private currentFile?: string = undefined;
-  private disableUserInteraction = false;
-  private lineCutBuffer?: terminalKit.TextBuffer.Attributes[];
-  private resizeTimer?: NodeJS.Timeout = undefined;
-
-  private disableOpen: boolean;
-  private disableSaveAs: boolean;
-  constructor(options?: TermitOptions) {
+  constructor(options = {}) {
     this.disableOpen = options.disableOpen || false;
     if (this.disableOpen) {
       defaults.statusBar.message = defaults.statusBar.message.replace('O:Open  ', '');
@@ -62,13 +40,13 @@ export class Termit {
     });
     this.textBuffer.setText('');
 
-    this.hookChain = (next: () => void) => {
+    this.hookChain = (next) => {
       next();
     };
     this.fileHash = '';
   }
 
-  addPreSaveHook(hook: (next: () => void) => void) {
+  addPreSaveHook(hook) {
     const self = this;
     this.hookChain = (function (chain) {
       return function (next) {
@@ -79,11 +57,9 @@ export class Termit {
     })(this.hookChain);
   }
 
-  init(file: string) {
-    this.term.on('resize', (width: number, height: number) => this.onResize(width, height));
-    this.term.on('key', (key: string, matches: boolean, data: { isCharacter: boolean }) =>
-      this.onKey(key, matches, data)
-    );
+  init(file) {
+    this.term.on('resize', this.onResize.bind(this));
+    this.term.on('key', this.onKey.bind(this));
 
     this.term.fullscreen(true);
 
@@ -109,7 +85,7 @@ export class Termit {
     return this.textBuffer.getText();
   }
 
-  drawBar(pos: { x: number; y: number }, message: string, invert = false) {
+  drawBar(pos, message, invert = false) {
     if (invert) {
       this.term.moveTo(pos.x, pos.y).styleReset.white.bold.eraseLine(' ' + message);
     } else {
@@ -117,7 +93,7 @@ export class Termit {
     }
   }
 
-  drawPrompt(prompt: string) {
+  drawPrompt(prompt) {
     this.drawBar(
       {
         x: 0,
@@ -173,7 +149,7 @@ export class Termit {
       return;
     }
 
-    this.getFileNameFromUser('Open file: ', (file: string) => this.load(file));
+    this.getFileNameFromUser('Open file: ', (file) => this.load(file));
   }
 
   load(file) {
@@ -184,7 +160,7 @@ export class Termit {
         content = fs.readFileSync(file, 'utf8');
       }
       this.currentFile = file;
-    } catch (e: any) {
+    } catch (e) {
       this.drawStatusBar('ERROR: Failed to load file: ' + file, 3500);
     }
 
@@ -219,7 +195,7 @@ export class Termit {
       return;
     }
 
-    this.getFileNameFromUser('Save as: ', (file: string) => this.save(file, callback), this.currentFile);
+    this.getFileNameFromUser('Save as: ', (file) => this.save(file, callback), this.currentFile);
   }
 
   saveFile() {
@@ -300,7 +276,7 @@ export class Termit {
     this.term.fullscreen(false);
   }
 
-  onResize(width: number, height: number) {
+  onResize(width, height) {
     //this.screenBuffer.
     //console.log(arguments);
     if (this.resizeTimer) {
@@ -319,7 +295,7 @@ export class Termit {
     }, 150);
   }
 
-  onKey(key: string, matches: boolean, data: { isCharacter: boolean }) {
+  onKey(key, matches, data) {
     if (this.disableUserInteraction && key !== 'CTRL_C') {
       return;
     }

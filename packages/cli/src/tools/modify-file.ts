@@ -11,8 +11,8 @@ import { zodParseJSON } from '../lib/zod';
 
 export const params = z.object({
   filePath: z.string().describe('The absolute path of the file to modify'),
-  linesToReplace: z.string().describe('One ore more lines to replace'),
-  replacement: z.string().describe('Replacement content')
+  linesToReplace: z.string().describe('One ore more lines to replace, including prefixed tabs and spaces'),
+  replacement: z.string().describe('Replacement content, including prefixed tabs and spaces')
 });
 
 function fuzzyReplace(content: string, linesToReplace: string, replacement: string) {

@@ -13,7 +13,7 @@ import readFile from '../tools/read-file';
 import writeFile from '../tools/write-file';
 
 const params = z.object({
-  taskDescription: z.string().describe('A description of the task to be performed')
+  taskDescription: z.string().describe('A description of the task to be performed using absolute file paths')
 });
 
 const assignToDeveloperTool = (apiKey: string, parent: ChatRunner) =>
@@ -22,26 +22,17 @@ const assignToDeveloperTool = (apiKey: string, parent: ChatRunner) =>
     function: {
       name: 'assignToDeveloper',
       description:
-        'Assign a well-defined programming task to a developer, returns a result of the messages from the developer',
+        'Assign a well-defined programming task to a developer. Returns a list of messages and tool results from the developer.',
       parameters: zodToJsonSchema(params),
       parse: zodParseJSON(params),
       function: wrap(async function ({ taskDescription }: z.infer<typeof params>) {
-        toolLogger(`Assigning to developer:\n\n ${taskDescription}`);
+        toolLogger(`Assigning to developer:\n\n ${taskDescription.split('\n').join('\n> ')}`);
         const runner = new ChatRunner({ apiKey });
         runner.on('message', parent.handleMessage.bind(parent));
         runner.on('functionCall', parent.handleFunctionCall.bind(parent));
         runner.on('functionCallResult', parent.handleFunctionCall.bind(parent));
         runner.on('content', parent.handleContent.bind(parent));
-        const result = await runner.sendMessage(
-          `Perform the following task that another developer has requested:
-
-          ${taskDescription}
-          
-          You should not assign this task to another developer unless absolutely necessary.`
-            .split('\n')
-            .map((line) => line.trim())
-            .join('\n')
-        );
+        const result = await runner.sendMessage(taskDescription);
         return result;
       })
     }
@@ -55,8 +46,7 @@ export class ChatRunner extends EventEmitter {
   messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
     {
       role: 'system',
-      content:
-        `You are Kevin, a 10x software developer who loves to code. Use the provided tools and functions to perform requested development tasks.
+      content: `You are Kevin, a CTO who loves to code. Use the provided tools to perform requested development tasks.
 
       When asked to perform a a task, you should:
 
@@ -67,12 +57,11 @@ export class ChatRunner extends EventEmitter {
 
       Other, more general instructions:
 
-      - Use the modifyFile function to make changes to files, do not overwrite files using writeFile.
+      - Use the modifyFile function to make changes to files.
       - Do not repeat or paraphrase instructions.
       - Only use plaintext formatting in messages.
       - Avoid displaying the contents of a file in messages when writing or modifying a file.
       - Only write or modify files located in the current working directory.
-      - Implement the task fully. Do not leave leave the implementation to others. 
 
       If you fail to follow these instructions you and your team will be put on a PiP.
 
@@ -80,9 +69,9 @@ export class ChatRunner extends EventEmitter {
 
         The current working directory is: ${cwd()}
         The current date is: ${new Date().toUTCString()}`
-          .split('\n')
-          .map((line) => line.trim())
-          .join('\n')
+        .split('\n')
+        .map((line) => line.trim())
+        .join('\n')
     }
   ];
 
@@ -107,7 +96,7 @@ export class ChatRunner extends EventEmitter {
       //model: 'gpt-4-1106-preview',
       model: 'gpt-3.5-turbo-1106',
       stream: true,
-      tools: [readFile, writeFile, readDirectory, modifyFile],
+      tools: [readFile, writeFile, readDirectory, modifyFile, this.assignToDeveloper],
       messages: this.messages
     });
 

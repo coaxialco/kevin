@@ -1,6 +1,6 @@
 import { TempDirectoryFactory } from './lib/filesystem';
 import { getOpenAIKey } from '../src/lib/api-key';
-import { ChatRunner } from '../src/lib/runner';
+import { ChatRunner } from '../src/lib/chat-runner';
 
 describe('Codebase functions', () => {
   jest.setTimeout(30000);
@@ -16,8 +16,8 @@ describe('Codebase functions', () => {
     const tempDirectory = await factory.makeTempDirectory();
     process.chdir(tempDirectory);
     console.log({ tempDirectory });
-    const key = await getOpenAIKey();
-    const chatRunner = new ChatRunner(key);
+    const apiKey = await getOpenAIKey();
+    const chatRunner = new ChatRunner({ apiKey });
     await chatRunner.sendMessage(
       `Create a new JavasScript file named 'example.js' containing a default export function that logs the text "foo"`
     );

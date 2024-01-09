@@ -4,13 +4,14 @@ import { RunnableToolFunction } from 'openai/lib/RunnableFunction';
 import { z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { currentWorkingDirectory as cwd } from './current-working-directory';
-import { toolLogger } from '../lib/loggers';
-import wrap from '../lib/wrap-tool-function';
-import { zodParseJSON } from '../lib/zod';
+import { toolLogger } from './loggers';
+import wrap from './wrap-tool-function';
+import { zodParseJSON } from './zod';
 import modifyFile from '../tools/modify-file';
 import readDirectory from '../tools/read-directory';
 import readFile from '../tools/read-file';
 import writeFile from '../tools/write-file';
+
 const params = z.object({
   taskDescription: z.string().describe('A description of the task to be performed')
 });
@@ -26,7 +27,7 @@ const assignToDeveloperTool = (apiKey: string, parent: ChatRunner) =>
       parse: zodParseJSON(params),
       function: wrap(async function ({ taskDescription }: z.infer<typeof params>) {
         toolLogger(`Assigning to developer:\n\n ${taskDescription}`);
-        const runner = new ChatRunner(apiKey);
+        const runner = new ChatRunner({ apiKey });
         runner.on('message', parent.handleMessage.bind(parent));
         runner.on('functionCall', parent.handleFunctionCall.bind(parent));
         runner.on('functionCallResult', parent.handleFunctionCall.bind(parent));
@@ -46,6 +47,10 @@ const assignToDeveloperTool = (apiKey: string, parent: ChatRunner) =>
     }
   } as RunnableToolFunction<z.infer<typeof params>>);
 
+export type ChatRunnerOptions = {
+  apiKey: string;
+};
+
 export class ChatRunner extends EventEmitter {
   messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
     {
@@ -56,7 +61,7 @@ export class ChatRunner extends EventEmitter {
       When asked to perform a a task, you should:
 
       1. Read all files mentioned in the task description.
-      2. Read all imported files, modules, and libraries referenced in the files that might be relevant.
+      2. Read all imported files, modules, and libraries that might be relevant.
       3. Write a concise description of the implementation steps you will take.
       4. Fully implement the solution without leaving TODOs or placeholders.
 
@@ -64,8 +69,8 @@ export class ChatRunner extends EventEmitter {
 
       - Use the modifyFile function to make changes to files, do not overwrite files using writeFile.
       - Do not repeat or paraphrase instructions.
-      - Avoid using markdown or other formatting in messages.
-      - Avoid displaying its contents of a file in messages when writing to a file.
+      - Only use plaintext formatting in messages.
+      - Avoid displaying the contents of a file in messages when writing or modifying a file.
       - Only write or modify files located in the current working directory.
       - Implement the task fully. Do not leave leave the implementation to others. 
 
@@ -84,18 +89,23 @@ export class ChatRunner extends EventEmitter {
   openai: OpenAI;
   assignToDeveloper: RunnableToolFunction<z.infer<typeof params>>;
   activeFunctionCalls = 0;
-  isWaiting = false;
+  response: Promise<void>;
+  responseResolve: void | (() => void) = undefined;
 
-  constructor(apiKey: string) {
+  constructor({ apiKey }: ChatRunnerOptions) {
     super();
     this.openai = new OpenAI({ apiKey });
     this.assignToDeveloper = assignToDeveloperTool(apiKey, this);
+    this.response = new Promise<void>((resolve) => {
+      this.responseResolve = resolve;
+    });
   }
 
   async sendMessage(message: string) {
     this.messages.push({ role: 'user', content: message });
     const runner = this.openai.beta.chat.completions.runTools({
-      model: 'gpt-4-1106-preview',
+      //model: 'gpt-4-1106-preview',
+      model: 'gpt-3.5-turbo-1106',
       stream: true,
       tools: [readFile, writeFile, readDirectory, modifyFile],
       messages: this.messages
@@ -116,6 +126,10 @@ export class ChatRunner extends EventEmitter {
   }
 
   handleFunctionCall() {
+    if (this.responseResolve) {
+      this.responseResolve();
+      this.responseResolve = undefined;
+    }
     this.activeFunctionCalls += 1;
   }
 
@@ -124,6 +138,14 @@ export class ChatRunner extends EventEmitter {
   }
 
   handleContent(content: string) {
+    if (this.responseResolve) {
+      this.responseResolve();
+      this.responseResolve = undefined;
+      queueMicrotask(() => {
+        this.emit('content', content);
+      });
+      return;
+    }
     this.emit('content', content);
   }
 }

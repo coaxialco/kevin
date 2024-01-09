@@ -7,7 +7,7 @@ export default async function* multiLineInputGenerator(): AsyncGenerator<string,
   let enterPressCount = 0;
   let lastEnterPressTime = 0;
   let resolveKeyPress: (() => void) | null = null;
-
+  let active = true;
   if (!process.stdin.isTTY) {
     const startLine = '\n\n\n******************** START OF STDIN *******************\n\n\n';
     const endLine = '\n\n\n********************* END OF STDIN ********************\n\n\n';
@@ -31,6 +31,15 @@ export default async function* multiLineInputGenerator(): AsyncGenerator<string,
   }
 
   function handleKey(name: string) {
+    if (name === 'CTRL_C') {
+      terminal.green('\nExiting...\n');
+      process.exit();
+    }
+
+    if (!active) {
+      return;
+    }
+
     // Handle Enter key for new line
     if (name === 'ENTER') {
       const now: number = Date.now();
@@ -73,11 +82,6 @@ export default async function* multiLineInputGenerator(): AsyncGenerator<string,
         resolveKeyPress();
       }
     }
-    // Handle CTRL+C for exit
-    else if (name === 'CTRL_C') {
-      terminal.green('\nExiting...\n');
-      process.exit();
-    }
     // Accumulate other characters
     else {
       currentLine += name;
@@ -85,18 +89,19 @@ export default async function* multiLineInputGenerator(): AsyncGenerator<string,
     }
   }
 
+  terminal.addListener('key', handleKey);
+  terminal.grabInput(true);
+
   while (true) {
-    terminal.grabInput(true);
-    terminal.addListener('key', handleKey);
     await new Promise<void>((resolve) => {
       resolveKeyPress = resolve;
     });
-    await terminal.grabInput(false, true);
-    terminal.removeListener('key', handleKey);
     const message = inputLines.join('\n').trim();
+    active = false;
     if (message.length > 0) {
       yield message;
     }
+    active = true;
     inputLines.length = 0;
     currentLine = '';
   }

@@ -46,15 +46,15 @@ const description = `Modify a file by replacing lines that match a linesToReplac
 For a file ./example.js with the following content:
 
 function oldExample() {
-  console.log("foo");
+	console.log("foo");
 }
 
 Running the following command:
 
 modifyFile({
   filePath: "/User/example/example.js", 
-  linesToReplace: "function oldExample() {\n  console.log("foo")", 
-  replacement: "function newExample() {\n  console.log("bar")"
+  linesToReplace: "function oldExample() {\n	console.log("foo")", 
+  replacement: "function newExample() {\n	console.log("bar")"
 });
 
 Modifies ./example.js to the following content:

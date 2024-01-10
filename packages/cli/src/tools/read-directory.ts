@@ -15,7 +15,7 @@ export const params = z.object({
 export async function func({ directoryPath }: z.infer<typeof params>) {
   toolLogger(`Reading directory '${directoryPath}'`);
   if (!(await exists(directoryPath))) {
-    throw new Error(`Directory with path "${directoryPath}" does not exist`);
+    return `A directory with path "${directoryPath}" does not exist`;
   }
   const entries: string[] = await walk({
     path: directoryPath,

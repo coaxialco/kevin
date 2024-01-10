@@ -1,11 +1,11 @@
 import LeadDeveloperRunner from './lead-developer';
-import ctoContent from '../content/cto';
+import systemContent from '../content/planner';
 import { Runner } from '../lib/runner';
 import readDirectory from '../tools/read-directory';
 import readFile from '../tools/read-file';
 
 export default class PlannerRunner extends Runner {
-  systemContent = ctoContent;
+  systemContent = systemContent;
   tools = [readDirectory, readFile];
   runnerTools = [
     {

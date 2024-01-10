@@ -38,7 +38,7 @@ describe('Filesystem functions', () => {
     const content = uuidv4();
     const filePath = `${uuidv4()}.txt`;
     await writeFile({ filePath, content });
-    await expect(readFile({ filePath, includeLineNumbers: false })).resolves.toEqual(content);
+    await expect(readFile({ filePath })).resolves.toEqual(content);
   });
   test('Should create directories to write files', async () => {
     const tempDirectory = await factory.makeTempDirectory();
@@ -46,19 +46,7 @@ describe('Filesystem functions', () => {
     const content = uuidv4();
     const filePath = `${uuidv4()}/${uuidv4()}.txt`;
     await writeFile({ filePath, content });
-    await expect(readFile({ filePath, includeLineNumbers: false })).resolves.toEqual(content);
-  });
-  test('Should read files with line numbers', async () => {
-    const tempDirectory = await factory.makeTempDirectory();
-    process.chdir(tempDirectory);
-    const content = `${uuidv4()}\n${uuidv4()}\n${uuidv4()}\n${uuidv4()}`;
-    const contentWithLineNumbers = content
-      .split('\n')
-      .map((line, index) => `${`${index + 1}`.padStart(6, ' ')} | ${line}`)
-      .join('\n');
-    const filePath = `${uuidv4()}.txt`;
-    await writeFile({ filePath, content });
-    await expect(readFile({ filePath, includeLineNumbers: true })).resolves.toEqual(contentWithLineNumbers);
+    await expect(readFile({ filePath })).resolves.toEqual(content);
   });
   test('Should not write files outside of the current working directory', async () => {
     const tempDirectory1 = await factory.makeTempDirectory();
@@ -98,6 +86,6 @@ describe('Filesystem functions', () => {
       replacement
     });
     expect(content).not.toEqual(newContent);
-    await expect(readFile({ filePath, includeLineNumbers: false })).resolves.toEqual(newContent);
+    await expect(readFile({ filePath })).resolves.toEqual(newContent);
   });
 });

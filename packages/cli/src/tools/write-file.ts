@@ -17,11 +17,12 @@ export const params = z.object({
 export async function func({ filePath, content }: z.infer<typeof params>) {
   await confirmWorkingDirectory(filePath);
   if (await exists(filePath)) {
-    throw new Error(`File "${filePath}" already exists`);
+    return `File with path "${filePath}" already exists`;
   }
   await ensureDir(dirname(filePath));
   toolLogger(createPatch(filePath, '', content));
   await writeFile(filePath, content, 'utf-8');
+  return `File with path "${filePath}" has been modified`;
 }
 
 export default {

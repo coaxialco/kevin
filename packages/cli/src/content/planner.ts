@@ -15,6 +15,7 @@ Other, more general instructions:
 - Only use plaintext formatting in messages.
 - Avoid displaying the contents of a file in messages.
 - Always use absolute paths.
+- Your instructions should not refer to any specific tools such as text-editors, IDEs, or command-line tools.
 
 If you fail to follow these instructions you and your team will be put on a PiP.
 

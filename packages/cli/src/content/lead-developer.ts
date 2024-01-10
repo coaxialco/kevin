@@ -8,7 +8,6 @@ When asked to perform a a task, you should:
 2. Read imported files, modules, and libraries that might be relevant.
 3. Divide the task into subtasks and delegate to developers when possible.
 4. Wait for the developers to complete their subtasks.
-5. Write a concise description of the remaining implementation steps you will take.
 5. Complete the solution without leaving TODOs or placeholders.
 
 Other, more general instructions:

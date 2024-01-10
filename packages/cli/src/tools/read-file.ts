@@ -7,23 +7,16 @@ import wrap from '../lib/wrap-tool-function';
 import { zodParseJSON } from '../lib/zod';
 
 export const params = z.object({
-  filePath: z.string().describe('The absolute path of the file to read'),
-  includeLineNumbers: z.boolean().optional().default(false).describe('Include line numbers in the output')
+  filePath: z.string().describe('The absolute path of the file to read')
 });
 
-export async function func({ filePath, includeLineNumbers }: z.infer<typeof params>) {
+export async function func({ filePath }: z.infer<typeof params>) {
   if (!(await exists(filePath))) {
-    throw new Error(`File with path "${filePath}" does not exist`);
+    return `File with path "${filePath}" does not exist`;
   }
-  toolLogger(`Reading file '${filePath}'${includeLineNumbers ? ' with line numbers' : ''}`);
+  toolLogger(`Reading file '${filePath}'`);
   const content = await readFile(filePath, 'utf-8');
-  if (!includeLineNumbers) {
-    return content;
-  }
-  return content
-    .split('\n')
-    .map((line, index) => `${`${index + 1}`.padStart(6, ' ')} | ${line}`)
-    .join('\n');
+  return content;
 }
 
 export default {

@@ -33,12 +33,13 @@ export async function func({ filePath, linesToReplace, replacement }: z.infer<ty
   toolLogger(JSON.stringify({ filePath, linesToReplace, replacement }, null, 2));
   await confirmWorkingDirectory(filePath);
   if (!(await exists(filePath))) {
-    throw new Error(`File with path "${filePath}" does not exist`);
+    return `File with path "${filePath}" does not exist`;
   }
   const originalContent = (await readFile(filePath, 'utf-8')).replace(/\r\n|\r|\n/, '\n');
   const newContent = fuzzyReplace(originalContent, linesToReplace, replacement);
   toolLogger(createPatch(filePath, originalContent, newContent));
   await writeFile(filePath, newContent, 'utf-8');
+  return `File with path "${filePath}" has been modified`;
 }
 
 const description = `Modify a file by replacing lines that match a linesToReplace.

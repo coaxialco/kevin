@@ -1,5 +1,5 @@
 import DeveloperRunner from './developer';
-import ctoContent from '../content/cto';
+import systemContent from '../content/lead-developer';
 import { Runner } from '../lib/runner';
 import modifyFile from '../tools/modify-file';
 import readDirectory from '../tools/read-directory';
@@ -7,7 +7,7 @@ import readFile from '../tools/read-file';
 import writeFile from '../tools/write-file';
 
 export default class LeadDeveloperRunner extends Runner {
-  systemContent = ctoContent;
+  systemContent = systemContent;
   tools = [modifyFile, readDirectory, readFile, writeFile];
   runnerTools = [
     {

@@ -13,7 +13,7 @@ export type RunnerOptions = {
 
 export class Runner extends EventEmitter {
   systemContent?: string = '';
-  tools: RunnableToolFunction<any>[] = [];
+  tools: RunnableToolFunction<any>[] = []; // eslint-disable-line @typescript-eslint/no-explicit-any
   runnerTools: {
     name: string;
     description: string;
@@ -44,7 +44,11 @@ export class Runner extends EventEmitter {
       delete this.systemContent;
     }
     while (this.runnerTools.length > 0) {
-      const { name, description, taskDescription, RunnerClass } = this.runnerTools.shift()!;
+      const runnerTool = this.runnerTools.shift();
+      if (typeof runnerTool === 'undefined') {
+        continue;
+      }
+      const { name, description, taskDescription, RunnerClass } = runnerTool;
       const params = z.object({
         task: z.string().describe(taskDescription)
       });
@@ -56,14 +60,16 @@ export class Runner extends EventEmitter {
           parameters: zodToJsonSchema(params),
           parse: zodParseJSON(params),
           function: wrap(async ({ task }: z.infer<typeof params>) => {
-            toolLogger(`Assigning to developer:\n\n ${task.split('\n').join('\n> ')}`);
+            this.emit('content', `Assigning to ${RunnerClass.name}:\n\n${task}`);
             const runner = new RunnerClass({ apiKey: this.apiKey });
-            runner.on('message', this.handleMessage.bind(this));
-            runner.on('functionCall', this.handleFunctionCall.bind(this));
-            runner.on('functionCallResult', this.handleFunctionCall.bind(this));
-            runner.on('content', this.handleContent.bind(this));
+            this.emit('handoff', runner);
             const result = await runner.sendMessage(task);
-            return result;
+            runner.emit('handoff', this);
+            const choice = result.choices[0];
+            if (typeof choice === 'undefined') {
+              throw new Error(`No message returned from ${RunnerClass.name} runner`);
+            }
+            return choice.message.content;
           })
         }
       } as RunnableToolFunction<z.infer<typeof params>>);
@@ -72,7 +78,6 @@ export class Runner extends EventEmitter {
     const openai = new OpenAI({ apiKey: this.apiKey });
     const runner = openai.beta.chat.completions.runTools({
       model: 'gpt-4-1106-preview',
-      //model: 'gpt-3.5-turbo-1106',
       stream: true,
       tools: this.tools,
       messages: this.messages
@@ -82,7 +87,6 @@ export class Runner extends EventEmitter {
     runner.on('functionCallResult', this.handleFunctionCall.bind(this));
     runner.on('content', this.handleContent.bind(this));
     const result = await runner.finalChatCompletion();
-    await new Promise<void>((resolve) => queueMicrotask(resolve));
     return result;
   }
 

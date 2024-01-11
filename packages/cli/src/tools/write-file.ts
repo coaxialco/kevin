@@ -22,7 +22,7 @@ export async function func({ filePath, content }: z.infer<typeof params>) {
   await ensureDir(dirname(filePath));
   toolLogger(createPatch(filePath, '', content));
   await writeFile(filePath, content, 'utf-8');
-  return `File with path "${filePath}" has been modified`;
+  return `File with path "${filePath}" has been written`;
 }
 
 export default {

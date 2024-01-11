@@ -1,3 +1,4 @@
+import { relative, isAbsolute } from 'path';
 import { readFile, exists } from 'fs-extra';
 import { RunnableToolFunction } from 'openai/lib/RunnableFunction';
 import { z } from 'zod';
@@ -11,10 +12,11 @@ export const params = z.object({
 });
 
 export async function func({ filePath }: z.infer<typeof params>) {
+  const relativeFilePath = isAbsolute(filePath) ? relative(process.cwd(), filePath) : filePath;
+  toolLogger(`Reading '${relativeFilePath}'`);
   if (!(await exists(filePath))) {
     return `File with path "${filePath}" does not exist`;
   }
-  toolLogger(`Reading file '${filePath}'`);
   const content = await readFile(filePath, 'utf-8');
   return content;
 }

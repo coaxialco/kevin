@@ -15,6 +15,8 @@ export const params = z.object({
   replacement: z.string().describe('Replacement content, including prefixed tabs and spaces')
 });
 
+class NoMatchesFoundError extends Error {}
+
 function fuzzyReplace(content: string, linesToReplace: string, replacement: string) {
   const contentLines = content.split('\n');
   const linesToReplaceLength = linesToReplace.split('\n').length;
@@ -26,7 +28,7 @@ function fuzzyReplace(content: string, linesToReplace: string, replacement: stri
       return content.replace(subContent, replacement);
     }
   }
-  throw new Error('Unable to replace, no matches found');
+  throw new NoMatchesFoundError('Unable to replace, no matches found');
 }
 
 export async function func({ filePath, linesToReplace, replacement }: z.infer<typeof params>) {
@@ -36,10 +38,17 @@ export async function func({ filePath, linesToReplace, replacement }: z.infer<ty
     return `File with path "${filePath}" does not exist`;
   }
   const originalContent = (await readFile(filePath, 'utf-8')).replace(/\r\n|\r|\n/, '\n');
-  const newContent = fuzzyReplace(originalContent, linesToReplace, replacement);
-  toolLogger(createPatch(filePath, originalContent, newContent));
-  await writeFile(filePath, newContent, 'utf-8');
-  return `File with path "${filePath}" has been modified`;
+  try {
+    const newContent = fuzzyReplace(originalContent, linesToReplace, replacement);
+    toolLogger(createPatch(filePath, originalContent, newContent));
+    await writeFile(filePath, newContent, 'utf-8');
+    return `File with path "${filePath}" has been modified`;
+  } catch (error) {
+    if (error instanceof NoMatchesFoundError) {
+      return `Unable to replace, no matches found`;
+    }
+    throw error;
+  }
 }
 
 const description = `Modify a file by replacing lines that match a linesToReplace.

@@ -1,7 +1,7 @@
 import { realTerminal as terminal } from 'terminal-kit';
 import { getOpenAIKey } from './lib/api-key';
 import multiLineInputGenerator from './lib/multi-line-input';
-import PlannerRunner from './runners/planner';
+import ClarifierRunner from './runners/clarifier';
 
 function logContent(content: string) {
   terminal.yellow(content);
@@ -9,7 +9,7 @@ function logContent(content: string) {
 
 async function main() {
   const apiKey = await getOpenAIKey();
-  let runner = new PlannerRunner({ apiKey });
+  let runner = new ClarifierRunner({ apiKey });
   runner.addListener('content', logContent);
   terminal.yellow('How can I help you?\n');
   terminal.gray('Press CTRL-D to complete your message.\n\n');

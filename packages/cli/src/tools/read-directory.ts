@@ -1,4 +1,4 @@
-import { resolve } from 'path';
+import { resolve, relative, isAbsolute } from 'path';
 import { exists } from 'fs-extra';
 import walk from 'ignore-walk';
 import { RunnableToolFunction } from 'openai/lib/RunnableFunction';
@@ -13,7 +13,8 @@ export const params = z.object({
 });
 
 export async function func({ directoryPath }: z.infer<typeof params>) {
-  toolLogger(`Reading directory '${directoryPath}'`);
+  const relativeDirectoryPath = isAbsolute(directoryPath) ? relative(process.cwd(), directoryPath) : directoryPath;
+  toolLogger(`Listing the contents of '${relativeDirectoryPath}'`);
   if (!(await exists(directoryPath))) {
     return `A directory with path "${directoryPath}" does not exist`;
   }
@@ -22,9 +23,11 @@ export async function func({ directoryPath }: z.infer<typeof params>) {
     ignoreFiles: ['.gitignore'],
     follow: true
   });
-  return entries.map((entry: string) => {
-    return resolve(directoryPath, entry);
-  });
+  return entries
+    .map((entry: string) => {
+      return resolve(directoryPath, entry);
+    })
+    .join('\n');
 }
 
 export default {

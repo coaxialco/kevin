@@ -14,14 +14,9 @@ async function main() {
   terminal.yellow('How can I help you?\n');
   terminal.gray('Press CTRL-D to complete your message.\n\n');
   for await (const input of multiLineInputGenerator()) {
-    const spinner = await terminal.spinner();
-    terminal.nextLine(1);
-    terminal.hideCursor(true);
+    terminal.yellow('*******************************\n');
     runner.response.then(() => {
-      spinner.animate(false);
-      terminal.previousLine(1);
-      terminal.delete(1);
-      terminal.nextLine(1);
+      terminal('\n');
     });
     runner.on('handoff', (newRunner) => {
       if (!newRunner.listeners('content').includes(logContent)) {

@@ -1,6 +1,5 @@
 import readline from 'node:readline';
 import { realTerminal as terminal } from 'terminal-kit';
-
 export default async function* multiLineInputGenerator(): AsyncGenerator<string, void, unknown> {
   const inputLines: string[] = [];
   let currentLine = '';

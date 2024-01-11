@@ -19,8 +19,9 @@ describe('Codebase functions', () => {
     const apiKey = await getOpenAIKey();
     const runner = new DeveloperRunner({ apiKey });
     await runner.sendMessage(
-      `Create a new JavasScript file named 'example.js' containing a default export function that logs the text "foo"`
+      `Create a new JavaScript file named 'example.js' containing a default export function that logs the text "foo"`
     );
     await runner.sendMessage(`Modify 'example.js' to log the text "bar"`);
   });
 });
++

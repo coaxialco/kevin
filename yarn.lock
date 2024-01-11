@@ -4504,6 +4504,11 @@ nextgen-events@^1.5.3:
   resolved "https://registry.yarnpkg.com/nextgen-events/-/nextgen-events-1.5.3.tgz#89a657720fffbfdef646f2769ac6fcc6c4f79789"
   integrity sha512-P6qw6kenNXP+J9XlKJNi/MNHUQ+Lx5K8FEcSfX7/w8KJdZan5+BB5MKzuNgL2RTjHG1Svg8SehfseVEp8zAqwA==
 
+nkbhook@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/nkbhook/-/nkbhook-0.1.2.tgz#0590861509c9c00026c309c0b115ff5b0e082e4e"
+  integrity sha512-Zk5dm49p2AXD2sgjoXyCYYNgY+92aBC9xNzoZHcYUHu20/c+ou9FYMSCpdMjGxOplCw2zPy2cNaqAdBKuqIWYw==
+
 node-bitmap@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/node-bitmap/-/node-bitmap-0.0.1.tgz#180eac7003e0c707618ef31368f62f84b2a69091"

@@ -2,10 +2,11 @@ import * as fs from 'fs-extra';
 
 const credentialsFilePath = `${process.env.HOME}/.openai/credentials`;
 
+const { OPENAI_API_KEY } = process.env;
+
 export async function getOpenAIKey() {
-  const key = process.env.OPENAI_API_KEY;
-  if (typeof key === 'string' && key.length > 0) {
-    return key;
+  if (typeof OPENAI_API_KEY === 'string' && OPENAI_API_KEY.length > 0) {
+    return OPENAI_API_KEY;
   }
   if (await fs.pathExists(credentialsFilePath)) {
     const content = await fs.readFile(credentialsFilePath, 'utf-8');

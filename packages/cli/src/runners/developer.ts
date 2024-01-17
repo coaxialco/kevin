@@ -11,10 +11,6 @@ Your project manager would like you to develop software based on their instructi
 
 Follow their instructions and fully implement a solution without leaving TODOs or placeholders.
 
-If several files need to be written or modified in the same way, send instructions on how to write or modify each file to the development team using the "sendInstructions" tool to parallelize the work. You do not need to say please or include a signature.
-
-If you learn new details that might be relevant to other developers, attach a note using the "attachNotes" tool.
-
 Other, more general instructions:
 
 * Use plaintext formatting in messages.
@@ -33,12 +29,11 @@ The current working directory is "${cwd()}"
 export default class DeveloperRunner extends Runner {
   systemContent = systemContent;
   tools = [modifyFile, readDirectory, readFile, writeFile];
-  runnerTools = [
-    {
-      name: 'sendInstructions',
-      description: `Sends instructions to the development team.`,
-      taskDescription: 'Instructions to send to the development team. Use absolute paths for files and directories.',
-      RunnerClass: DeveloperRunner
-    }
-  ];
+  runnerTools = [];
 }
+
+/*
+If several files need to be written or modified in the same way, send instructions on how to write or modify each file to the development team using the "sendInstructions" tool to parallelize the work. You do not need to say please or include a signature.
+
+If you learn new details that might be relevant to other developers, attach a note using the "attachNotes" tool.
+*/

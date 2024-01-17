@@ -24,4 +24,3 @@ describe('Codebase functions', () => {
     await runner.sendMessage(`Modify 'example.js' to log the text "bar"`);
   });
 });
-+

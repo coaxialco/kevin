@@ -13,8 +13,14 @@ async function main() {
   runner.addListener('content', logContent);
   terminal.yellow('How can I help you?\n');
   terminal.gray('Press CTRL-D to complete your message.\n\n');
+  //for await (const input of multiLineInputGenerator()) {
+  //  terminal.yellow('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n');
+  //  terminal(JSON.stringify(input));
+  //  terminal.yellow('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n');
+  //}
   for await (const input of multiLineInputGenerator()) {
-    terminal.yellow('*******************************\n');
+    terminal.hideCursor();
+    terminal.yellow('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n');
     runner.response.then(() => {
       terminal('\n');
     });
@@ -25,6 +31,7 @@ async function main() {
       runner = newRunner;
     });
     await runner.sendMessage(input);
+    terminal.yellow('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n');
     terminal.hideCursor(false);
   }
 }

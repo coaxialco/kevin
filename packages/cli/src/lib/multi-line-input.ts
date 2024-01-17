@@ -34,57 +34,51 @@ export default async function* multiLineInputGenerator(): AsyncGenerator<string,
       terminal.green('\nExiting...\n');
       process.exit();
     }
-
     if (!active) {
       return;
     }
+    if (name.length === 1) {
+      currentLine += name;
+      terminal(name);
+    }
+    switch (name) {
+      case 'ENTER':
+        const now: number = Date.now();
 
-    // Handle Enter key for new line
-    if (name === 'ENTER') {
-      const now: number = Date.now();
+        // Reset count if more than 1 second has passed since the last ENTER press
+        if (now - lastEnterPressTime > 1000 || now - lastEnterPressTime < 50) {
+          enterPressCount = 0;
+        }
 
-      // Reset count if more than 1 second has passed since the last ENTER press
-      if (now - lastEnterPressTime > 1000 || now - lastEnterPressTime < 50) {
-        enterPressCount = 0;
-      }
+        enterPressCount++;
+        lastEnterPressTime = now;
 
-      enterPressCount++;
-      lastEnterPressTime = now;
-
-      if (enterPressCount >= 3) {
+        if (enterPressCount >= 3) {
+          inputLines.push(currentLine);
+          currentLine = '';
+          terminal('\n');
+          // Yield and clear inputLines
+          if (resolveKeyPress) {
+            resolveKeyPress();
+          }
+          enterPressCount = 0;
+        } else {
+          inputLines.push(currentLine);
+          currentLine = '';
+          terminal('\n');
+        }
+        break;
+      case 'BACKSPACE':
+        currentLine = currentLine.slice(0, -1);
+        terminal.left(1).delete(1);
+      case 'CTRL_D':
         inputLines.push(currentLine);
         currentLine = '';
         terminal('\n');
-        // Yield and clear inputLines
+        enterPressCount = 0;
         if (resolveKeyPress) {
           resolveKeyPress();
         }
-        enterPressCount = 0;
-      } else {
-        inputLines.push(currentLine);
-        currentLine = '';
-        terminal('\n');
-      }
-    }
-    // Handle Backspace key
-    else if (name === 'BACKSPACE') {
-      currentLine = currentLine.slice(0, -1);
-      terminal.left(1).delete(1);
-    }
-    // Handle CTRL+D for exit
-    else if (name === 'CTRL_D') {
-      inputLines.push(currentLine);
-      currentLine = '';
-      terminal('\n');
-      enterPressCount = 0;
-      if (resolveKeyPress) {
-        resolveKeyPress();
-      }
-    }
-    // Accumulate other characters
-    else {
-      currentLine += name;
-      terminal(name);
     }
   }
 
